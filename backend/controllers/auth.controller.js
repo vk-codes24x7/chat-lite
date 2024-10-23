@@ -1,19 +1,18 @@
 import brcrypt from "bcryptjs";
 import generateJWTAndSetCookie from "../utils/generateToken.js";
 import prisma from "../db/connectToDB.js";
+import signUpUserSchema from "../zod/signUpUserSchema.js";
+import { z } from "zod";
 
 export const signup = async (req, res) => {
   try {
     const { fullName, userName, password, confirmPassword, gender } = req.body;
 
-    console.log(req.body);
-
-    if (password !== confirmPassword)
-      return res.status(400).json({ message: "Passwords do not match" });
+    const validatedData = signUpUserSchema.parse(req.body);
 
     const user = await prisma.user.findUnique({
       where: {
-        userName,
+        userName: validatedData.userName,
       },
     });
 
@@ -49,8 +48,16 @@ export const signup = async (req, res) => {
       res.status(400).json({ message: "Invalid user data" });
     }
   } catch (error) {
-    console.log("Error in signup controller", error.message);
-    res.status(500).json({ error: "Internal Server Error" });
+    if (error instanceof z.ZodError) {
+      const formattedError = error.errors.map((err) => ({
+        field: err.path[0],
+        message: err.message,
+      }));
+      res.status(400).json({ errors: formattedError });
+    } else {
+      console.log("Error in signup controller", error.message);
+      res.status(500).json({ error: "Internal Server Error" });
+    }
   }
 };
 
