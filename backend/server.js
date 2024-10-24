@@ -3,6 +3,7 @@ import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
 import authRoutes from "./routes/auth.routes.js";
 import userRoutes from "./routes/user.routes.js";
+import messageRoutes from "./routes/message.routes.js";
 import prisma from "./db/connectToDB.js";
 
 dotenv.config();
@@ -12,6 +13,7 @@ app.use(express.json());
 
 app.use("/api/users", userRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api/messages", messageRoutes);
 
 const server = app.listen(process.env.PORT, async () => {
   console.log(`Server listening on port ${process.env.PORT}`);
